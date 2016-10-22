@@ -1,0 +1,11 @@
+[Service]
+ExecStart=/usr/bin/python3 /var/lib/quassel/QuasselQuery/run.py
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=quasselquery
+User=quasselcore
+Group=quassel
+
+[Install]
+WantedBy=multi-user.target
