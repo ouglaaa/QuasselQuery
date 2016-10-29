@@ -182,7 +182,7 @@ function GetSender(row)
   
 function GetDataTable()
 {
-	if (searchResults == null || $.fn.dataTables.isDataTable(searchResults) == false)
+	if (searchResults == null)
 	{
 		searchResults = $('#searchResults').DataTable({
 			"processing": true,
@@ -211,9 +211,9 @@ function GetDataTable()
 }
 function AttachOnClickToSearchResults()
 {
-	console.log('sr' + searchResults);
+	sr = GetDataTable();
 	$('#searchResults tbody').on( 'click', 'tr', function () {
-		var data = searchResults.row( this ).data();
+		var data = sr.row( this ).data();
 		console.log(data);
 		
 		var target = '/api/backlog?q=' + QueryBacklogDetails(data, "<");
@@ -285,8 +285,8 @@ function OnGoClick()
         
     var queryJson = JSON.stringify(query);
     
-	searchResults = GetDataTable();	
-	searchResults.ajax.url("/api/backlog?q=" + queryJson).load(function() {
+	sr = GetDataTable();	
+	sr.ajax.url("/api/backlog?q=" + queryJson).load(function() {
 		AttachOnClickToSearchResults();	
 	});
 	
