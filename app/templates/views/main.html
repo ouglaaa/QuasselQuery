@@ -255,7 +255,7 @@ function QueryBacklogDetails(message, op)
 		limit: 50,
 		order_by= {
 			"field": "MessageId",
-			"direction": op.contains("<") ? "desc" : "asc";
+			"direction": op.contains("<") ? "desc" : "asc",
 		},
 	}
 	var json = JSON.stringify(query, space=0);		
