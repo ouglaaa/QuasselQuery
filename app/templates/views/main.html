@@ -253,10 +253,10 @@ function QueryBacklogDetails(message, op)
 			NewFilter("BufferId", '==', message.BufferId),
 		],
 		limit: 50,
-		order_by: {
+		order_by: [{
 			"field": "MessageId",
-			"direction": op.contains("<") ? "desc" : "asc",
-		},
+			"direction": op.includes("<") ? "desc" : "asc",
+		}],
 	}
 	var json = JSON.stringify(query, space=0);		
 	console.log(json);
