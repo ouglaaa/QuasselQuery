@@ -253,7 +253,7 @@ function QueryBacklogDetails(message, op)
 			NewFilter("BufferId", '==', message.BufferId),
 		],
 		limit: 50,
-		order_by= {
+		order_by: {
 			"field": "MessageId",
 			"direction": op.contains("<") ? "desc" : "asc",
 		},
