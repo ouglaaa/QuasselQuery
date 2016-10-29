@@ -7,6 +7,7 @@ https://cdnjs.cloudflare.com/ajax/libs/linq.js/2.2.0.2/jquery.linq.js
 https://cdnjs.cloudflare.com/ajax/libs/linq.js/2.2.0.2/jquery.linq.min.js
 https://cdnjs.cloudflare.com/ajax/libs/linq.js/2.2.0.2/linq.js 
 -->
+        <script src="//github.hubspot.com/tether/dist/js/tether.js"></script>
     <script data-require="jquery" data-semver="3.0.0" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.js"></script>
     <script data-require="bootstrap" data-semver="4.0.0-alpha.2" src="https://cdn.rawgit.com/twbs/bootstrap/v4-dev/dist/js/bootstrap.js"></script>
 	<script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
@@ -23,9 +24,11 @@ https://cdnjs.cloudflare.com/ajax/libs/linq.js/2.2.0.2/linq.js
     ================================================== -->
 
 	
-	<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/r/bs-3.3.5/jq-2.1.4,dt-1.10.8//media/css/jquery.dataTables.css">
+		
+	<!-- <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/r/bs-3.3.5/jq-2.1.4,dt-1.10.8/media/css/jquery.dataTables.css"> -->
+	<!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/r/bs-3.3.5/jq-2.1.4,dt-1.10.8/datatables.min.css"/> -->
 	<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
-	<!-- <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"> -->
+	 <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"> 
 	
 	
 	
@@ -228,7 +231,9 @@ function AttachOnClickToSearchResults()
 					function(afterDetails)
 					{
 						var details = beforeDetails.objects;
-						details = details.concat(afterDetails.objects);
+						details = details.concat(afterDetails.objects).sort(function(left, right){
+							return left.Time - right.Time;
+						});
 						console.log(details);
 						
 						var log = "";
