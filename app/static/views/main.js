@@ -16,6 +16,7 @@ var networks;
 var buffers;
 
 var searchResults;
+var searchedText;
 
 function GetNetwork(networkId) {
 	var tab = networks.filter(item => {
@@ -127,7 +128,9 @@ function GetDataTable() {
 					return GetSender(row);
 				},
 			}, {
-				"data": "Message",
+				"data": function (row, type, val, meta) {
+					return GetMessage(row.Message);
+				}
 			}, ],
 		});
 	}
@@ -135,39 +138,21 @@ function GetDataTable() {
 	return searchResults;
 }
 
-function AttachOnClickToSearchResults() {
-	sr = GetDataTable();
-	sr.columns.adjust().draw();
-	$('#searchResults tbody').on('click', 'tr', function () {
-		var data = sr.row(this).data();
-
-		var target = '/api/backlog?q=' + QueryBacklogDetails(data, "<");
-		$.getJSON(target,
-			function (beforeDetails) {
-				query = QueryBacklogDetails(data, ">=");
-				target = '/api/backlog?q=' + query;
-				$.getJSON(target,
-					function (afterDetails) {
-						var details = beforeDetails.objects;
-						details = details.concat(afterDetails.objects).sort(function (left, right) {
-							return left.Time - right.Time;
-						});
-
-						var log = "";
-						details.forEach(function (msg) {
-
-							log += GetDateFormat(msg) +
-									/* '[' + GetBufferName(msg.BufferId) + ']' + */
-									" <" + GetSenderName(msg.Sender.SenderIdent) + "> " + msg.Message + "\n";
-
-						})
-						$("#logDetails").val(log);
-					});
 
 
-			});
-	});
-}
+// function applyHighlights(text) {
+//   text = text
+//     .replace(/\n$/g, '\n\n')
+//     .replace(/[A-Z].*?\b/g, '<mark>$&</mark>');
+
+//   if (isIE) {
+//     // IE wraps whitespace differently in a div vs textarea, this fixes it
+//     text = text.replace(/ /g, ' <wbr>');
+//   }
+
+//   return text;
+// }
+
 
 function GetBufferName(bufferId) {
 	var tab = buffers.filter(function (val) {
@@ -200,18 +185,18 @@ function QueryBacklogDetails(message, op) {
 
 
 function DoSearch() {
-	var searchText = $("#searchText").val().trim();
+	searchedText = $("#searchText").val().trim();
 
 	var bufferIds = $("#buffer").val();
 
 	var bufferId = bufferIds[0];
 
-	if (bufferIds == null || searchText.length == 0) {
+	if (bufferIds == null || searchedText.length == 0) {
 		alert("invalid request");
 		return false;
 	}
 
-	searchText = "%" + searchText + "%";
+	var searchText = "%" + searchedText + "%";
 	query = new Object();
 	query.filters = [
 		NewFilter("BufferId", "in", bufferIds),
@@ -226,4 +211,48 @@ function DoSearch() {
 	});
 
 
+}
+
+
+function AttachOnClickToSearchResults() {
+	sr = GetDataTable();
+	sr.columns.adjust().draw();
+	$('#searchResults tbody').on('click', 'tr', function () {
+		var data = sr.row(this).data();
+
+		var target = '/api/backlog?q=' + QueryBacklogDetails(data, "<");
+		$.getJSON(target,
+			function (beforeDetails) {
+				query = QueryBacklogDetails(data, ">=");
+				target = '/api/backlog?q=' + query;
+				$.getJSON(target,
+					function (afterDetails) {
+						var details = beforeDetails.objects;
+						details = details.concat(afterDetails.objects).sort(function (left, right) {
+							return left.Time - right.Time;
+						});
+
+						var log = "";
+						details.forEach(function (msg) {
+							line = GetDateFormat(msg) +
+								/* '[' + GetBufferName(msg.BufferId) + ']' + */
+								" <" + GetSenderName(msg.Sender.SenderIdent) + "> " + msg.Message + "\n";
+							log += "<li>" + GetMessage(line) + "</li>";
+							
+						})
+						logDetails = $("#logDetails");
+						logDetails.append(log);
+					});
+
+
+			});
+	});
+}
+
+function GetMessage(message) {
+	var txt = searchedText;
+	var target = "<mark>" + txt + "</mark>";
+	var regex = new RegExp(txt, "ig")
+	var msg = message.replace(regex, target);
+	return msg;
 }
