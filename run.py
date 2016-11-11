@@ -7,4 +7,4 @@ import ssl
 #context.load_cert_chain("cert.crt", "priv.key", 'testest')
 
 
-app.run(host='0.0.0.0', port=8000, debug=True)#, ssl_context=context)
+app.run(host='0.0.0.0', port=8888, debug=True)#, ssl_context=context)
