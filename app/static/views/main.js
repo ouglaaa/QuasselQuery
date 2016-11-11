@@ -245,10 +245,11 @@ function AttachOnClickToSearchResults() {
 							line = GetDateFormat(msg) +
 								/* '[' + GetBufferName(msg.BufferId) + ']' + */
 								" <" + GetSenderName(msg.Sender.SenderIdent) + "> " + msg.Message + "\n";
-							log += "<li>" + GetMessage(line) + "</li>";
+							log += "<li>" + htmlEncode(GetMessage(line)) + "</li>";
 
 						})
 						logDetails = $("#logDetails");
+						logDetails.empty();
 						logDetails.append(log);
 					});
 
