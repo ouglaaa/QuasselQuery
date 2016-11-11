@@ -70,6 +70,9 @@ function RefreshBuffers(network) {
 		select.empty();
 		buffers = data.Buffers;
 		$.each(buffers, function (idx, item) {
+			bufferName = item.BufferName;
+			if (bufferName == null || bufferName.trim().length == 0)
+				return;
 			select.append('<option value="' + item.BufferId + ' "> ' + item.BufferName + '</option>');
 		});
 		select.selectpicker('refresh');
