@@ -31,13 +31,27 @@ function GetNetwork(networkId) {
 function LoadNetwork() {
 	var select = $('#network');
 
-	$.getJSON("/api/identity/1", function (data) {
-		select.empty();
-		networks = data.Networks;
+	query = new Object();
+	query.filters = [
+		NewFilter("UserId", "==", "1"),
+	];
+	var json = JSON.stringify(query, space = 0);
 
-		$.each(networks, function (index, item) {
-			select.append('<option value="' + item.NetworkId + ' "> ' + item.NetworkName + '</option>');
-		})
+	$.getJSON("/api/identity?q=" + json, function (data) {
+		select.empty();
+		identities = data.objects;
+		if (identities == null) {
+			alert("user 1 not found");
+			return;
+		}
+
+
+		$.each(identities, function (idx, ident) {
+			networks = ident.Networks;
+			$.each(networks, function (index, item) {
+				select.append('<option value="' + item.NetworkId + ' "> ' + item.NetworkName + '</option>');
+			})
+		});
 		select.selectpicker('refresh');
 	});
 
@@ -96,14 +110,13 @@ function GetDateFormat(row) {
 
 	var locale = window.navigator.userLanguage || window.navigator.language;
 	var date = d.toLocaleTimeString('fr-FR', opts);
-	return "[" + date + "]";
+	return date;
 }
 
 function GetSender(row) {
 	var sender = GetSenderName(row.Sender.SenderIdent);
 
-	return htmlEncode("<" + sender + ">");
-
+	return sender;
 }
 
 function GetDataTable() {
@@ -112,23 +125,36 @@ function GetDataTable() {
 			"processing": true,
 			"serverside": true,
 			"deferLoading": 0, // here
+			"ordering": true,
 			ajax: {
 				dataSrc: "objects",
 			},
 			columns: [{
-				"data": function (row, type, val, meta) {
+				"name": "date",
+				"title": "date",
+				"orderable": true,
+				"render": function (data, type, row) {
 					return GetDateFormat(row);
 				},
 			}, {
-				"data": function (row, type, val, meta) {
+				"name": "buffer",
+				"title": "buffer",
+				"orderable": true,
+				"render": function (data, type, row) {
 					return "[" + GetBufferName(row.BufferId) + "]";
 				},
 			}, {
-				"data": function (row, type, val, meta) {
-					return GetSender(row);
+				"name": "user",
+				"title": "user",
+				"orderable": true,
+				"render": function (data, type, row) {
+					return htmlEncode("<" + GetSender(row) + ">");
 				},
 			}, {
-				"data": function (row, type, val, meta) {
+				"name": "message",
+				"title": "message",
+				"orderable": true,
+				"render": function (data, type, row) {
 					return GetMessage(row.Message);
 				}
 			}, ],
@@ -138,30 +164,12 @@ function GetDataTable() {
 	return searchResults;
 }
 
-
-
-// function applyHighlights(text) {
-//   text = text
-//     .replace(/\n$/g, '\n\n')
-//     .replace(/[A-Z].*?\b/g, '<mark>$&</mark>');
-
-//   if (isIE) {
-//     // IE wraps whitespace differently in a div vs textarea, this fixes it
-//     text = text.replace(/ /g, ' <wbr>');
-//   }
-
-//   return text;
-// }
-
-
 function GetBufferName(bufferId) {
 	var tab = buffers.filter(function (val) {
 		if (val.BufferId == bufferId) {
 			return true;
 		}
 	});
-
-
 
 	return tab[0].BufferName;
 }
@@ -238,7 +246,7 @@ function AttachOnClickToSearchResults() {
 								/* '[' + GetBufferName(msg.BufferId) + ']' + */
 								" <" + GetSenderName(msg.Sender.SenderIdent) + "> " + msg.Message + "\n";
 							log += "<li>" + GetMessage(line) + "</li>";
-							
+
 						})
 						logDetails = $("#logDetails");
 						logDetails.append(log);
