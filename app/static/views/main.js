@@ -147,6 +147,7 @@ function GetDataTable() {
 				"name": "date",
 				"title": "Date",
 				"orderable": true,
+				"width": "220px",
 				"render": function (data, type, row) {
 					if (type === 'display' || type === 'filter') {
 						return GetDateFormat(row);
@@ -156,7 +157,7 @@ function GetDataTable() {
 			}, {
 				"name": "buffer",
 				"title": "Buffer",
-				"width": "auto",
+				"width": "150px",
 				"orderable": true,
 				"render": function (data, type, row) {
 					return "[" + GetBufferName(row.BufferId) + "]";
@@ -164,6 +165,7 @@ function GetDataTable() {
 			}, {
 				"name": "user",
 				"title": "User",
+				"width": "150px",
 				"orderable": true,
 				"render": function (data, type, row) {
 					return htmlEncode("<" + GetSender(row) + ">");
