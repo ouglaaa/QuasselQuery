@@ -20,12 +20,14 @@ $(document).ready(function () {
 
 		FetchLog(">");
 	});
+
+	marks = ["mark0", "mark1", "mark2", "mark3", "mark4"];
 });
 var networks;
 var buffers;
 
 var searchResults;
-var searchedText;
+var searchedWords;
 var logContent; // JSon log content 
 
 function GetNetwork(networkId) {
@@ -212,41 +214,69 @@ function QueryBacklogDetails(message, op) {
 }
 
 
+function MeasureAjax(ctx, action, param) {
+	var start = new Date().getTime();
+
+	action(function () {
+		param();
+
+		var end = new Date().getTime();
+		var elapsed = end - start;
+		console.log(ctx, ": ", elapsed, "ms");
+	});
+}
+
+
 function DoSearch() {
-	searchedText = $("#searchText").val().trim();
+	var idx = 0;
+	searchedWords = Enumerable.From($("#searchText").val().trim().split(" ")).Select(word => {
+		var mark = marks[idx];
+		idx++;
+		return {
+			Word: word,
+			Mark: "<mark class=\"" + mark + "\">" + word + "</mark>",
+		};
+	}).ToDictionary(word => word.Word);
+
+
 
 	var bufferIds = $("#buffer").val();
 
-	var bufferId = bufferIds[0];
-
-	if (bufferIds == null || searchedText.length == 0) {
+	if (bufferIds == null || searchedWords.Count() == 0) {
 		alert("invalid request");
 		return false;
 	}
 
-	var searchText = "%" + searchedText + "%";
+
+
 	query = new Object();
 	query.filters = [
 		NewFilter("BufferId", "in", bufferIds),
-		NewFilter("Message", "ilike", encodeURIComponent(searchText)),
 	];
+
+	searchedWords.ToEnumerable().ForEach(kvp =>
+		query.filters.push(NewFilter("Message", "ilike", encodeURIComponent("%" + kvp.Value.Word + "%")))
+	);
+
 
 	var queryJson = JSON.stringify(query);
 
+	//console.log("queryJson ", queryJson);
 	sr = GetDataTable();
-	sr.ajax.url("/api/backlog?q=" + queryJson).load(function () {
-		AttachOnClickToSearchResults();
-	});
 
+	MeasureAjax("backlog query", sr.ajax.url("/api/backlog?q=" + queryJson).load, AttachOnClickToSearchResults)
 
 }
 
 
 function GetMessage(message) {
-	var txt = searchedText;
-	var target = "<mark>" + txt + "</mark>";
-	var regex = new RegExp(txt, "ig")
-	var msg = message.replace(regex, target);
+	var words = searchedWords.ToEnumerable().Select(kvp => kvp.Key).ToArray().join("|");
+
+	var re = new RegExp(words,"gi");
+
+	var msg = message.replace(re, match => {
+		return searchedWords.Get(match).Mark;
+	});
 	return msg;
 }
 
@@ -295,20 +325,17 @@ function FetchLog(direction) {
 	var target = '/api/backlog?q=' + QueryBacklogDetails(message, direction);
 	$.getJSON(target, function (data) {
 		tab = data.objects;
-		console.log(tab);
+
 		if (direction == "<") {
 			logContent = tab.sort(SortByTime).concat(logContent);
 		} else {
 			logContent = logContent.concat(tab.sort(SortByTime));
 		}
 
-		logging = 1;
 		RefreshLogDetails();
-logging =0 ;
 	})
 
 }
-var logging = 0;
 
 function GetLogDisplay(logDetail) {
 	var log = "";

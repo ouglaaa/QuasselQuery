@@ -59,11 +59,35 @@ textarea {
     word-wrap: break-word;
 }
 
-mark {
+.mark0 {
     margin: 0;
     padding: 0;
     color: black;
-    background-color: yellow;
+    background-color: lightgreen;
+}
+.mark1 {
+    margin: 0;
+    padding: 0;
+    color: black;
+    background-color: palevioletred;
+}
+.mark2 {
+    margin: 0;
+    padding: 0;
+    color: black;
+    background-color: palegoldenrod;
+}
+.mark3 {
+    margin: 0;
+    padding: 0;
+    color: black;
+    background-color: cyan;
+}
+.mark4 {
+    margin: 0;
+    padding: 0;
+    color: black;
+    background-color: royalblue;
 }
 ul {
   list-style-type: none;
