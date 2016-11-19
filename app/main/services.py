@@ -6,7 +6,6 @@ from app.main.model import *
 
 
 def addCorsHeaders(response):
-    print("add                                       Cors")
     response.headers['Access-Control-Allow-Origin'] = '*'
 #     response.headers['Access-Control-Allow-Credentials'] = 'true'
 
@@ -20,8 +19,9 @@ def initServices(api):
     api.create_api(Backlog, results_per_page = -1)
 
     
+from flask_restless.search import OPERATORS
 
-
+OPERATORS["REGEXP"] = lambda f, a: f.op('regexp')(a)
 
 # @dataModule.route('/buffers')
 # # @expose('json')

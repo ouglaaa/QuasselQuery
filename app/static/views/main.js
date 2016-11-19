@@ -30,6 +30,11 @@ var searchResults;
 var searchedWords;
 var logContent; // JSon log content 
 
+function IsQueryARegex() {
+	var b = $("#isRegex").is(":checked");
+	return b;
+}
+
 function GetNetwork(networkId) {
 	var tab = networks.filter(item => {
 		return item.NetworkId = networkId;
@@ -177,7 +182,7 @@ function GetDataTable() {
 				"title": "Message",
 				"orderable": true,
 				"render": function (data, type, row) {
-					return GetMessage(row.Message);
+					return context.HighlightMessage(row.Message);
 				}
 			}, ],
 		});
@@ -226,8 +231,7 @@ function MeasureAjax(ctx, action, param) {
 	});
 }
 
-
-function DoSearch() {
+function BuildSearchedWords() {
 	var idx = 0;
 	searchedWords = Enumerable.From($("#searchText").val().trim().split(" ")).Select(word => {
 		var mark = marks[idx];
@@ -239,8 +243,11 @@ function DoSearch() {
 	}).ToDictionary(word => word.Word);
 
 
+}
 
-	var bufferIds = $("#buffer").val();
+function BuildSearchQuery(bufferIds) {
+	BuildSearchedWords();
+
 
 	if (bufferIds == null || searchedWords.Count() == 0) {
 		alert("invalid request");
@@ -258,27 +265,72 @@ function DoSearch() {
 		query.filters.push(NewFilter("Message", "ilike", encodeURIComponent("%" + kvp.Value.Word + "%")))
 	);
 
-
-	var queryJson = JSON.stringify(query);
-
-	//console.log("queryJson ", queryJson);
-	sr = GetDataTable();
-
-	MeasureAjax("backlog query", sr.ajax.url("/api/backlog?q=" + queryJson).load, AttachOnClickToSearchResults)
-
+	return query;
 }
-
-
-function GetMessage(message) {
+function HighlightMessageWithSearchedWords(message) {
 	var words = searchedWords.ToEnumerable().Select(kvp => kvp.Key).ToArray().join("|");
 
-	var re = new RegExp(words,"gi");
+	var re = new RegExp(words, "gi");
 
 	var msg = message.replace(re, match => {
 		return searchedWords.Get(match).Mark;
 	});
 	return msg;
 }
+
+
+function BuildRegexQuery(bufferIds) {
+	regText = $("#searchText").val().trim();
+
+	regex = new RegExp(regText);
+	console.log("text:", regText);
+	console.log( "regex:", regex );
+
+	query = new Object();
+	query.filters = [
+		NewFilter("BufferId", "in", bufferIds),
+		NewFilter("Message", "REGEXP", encodeURIComponent(regText)),
+	];
+
+	return query;
+}
+var context;
+function BuildContext(){
+	context = new Object();
+	if (IsQueryARegex() == false)
+	{
+		context.BuildQuery = BuildSearchQuery;
+		context.HighlightMessage = HighlightMessageWithSearchedWords;
+	}
+	else if (IsQueryARegex())
+	{
+		context.HighlightMessage = HighlightMessageWithRegexp;
+		context.BuildQuery = BuildRegexQuery;
+		console.log("RegexQuery");
+	}
+}
+function HighlightMessageWithRegexp(message) {
+	return message;
+}
+
+function DoSearch() {
+
+
+	BuildContext();
+
+	var bufferIds = $("#buffer").val();
+	var query = context.BuildQuery(bufferIds);
+	console.log("query", query);
+
+	var queryJson = JSON.stringify(query);
+
+	console.log("queryJson ", queryJson);
+	sr = GetDataTable();
+
+	MeasureAjax("backlog query", sr.ajax.url("/api/backlog?q=" + queryJson).load, AttachOnClickToSearchResults)
+
+}
+
 
 function AttachOnClickToSearchResults() {
 	sr = GetDataTable();
@@ -343,7 +395,7 @@ function GetLogDisplay(logDetail) {
 		line = GetDateFormat(msg) +
 			/* '[' + GetBufferName(msg.BufferId) + ']' + */
 			htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + msg.Message + "\n";
-		log += "<li>" + GetMessage(line) + "</li>";
+		log += "<li>" + context.HighlightMessage(line) + "</li>";
 
 	})
 	return log;
