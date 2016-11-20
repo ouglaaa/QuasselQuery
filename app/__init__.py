@@ -93,8 +93,5 @@ from app.main.services import initServices, addCorsHeaders
 initServices(api)
 
 
-# for bp in app.blueprints.values():
-#    print(bp.name, bp.url_prefix, bp.subdomain)
-#    if bp.url_prefix == '/api':
-#        print('go')
-#        bp.after_request(addCorsHeaders)
+from app.main.login import initLogin
+initLogin(app)

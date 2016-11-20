@@ -286,7 +286,7 @@ function BuildRegexQuery(bufferIds) {
 	regText = $("#searchText").val().trim();
 
 	context.regex = new RegExp(regText, "gi");
-	if(context.regex == null)
+	if (context.regex == null)
 		throw "invalid regex: " + regText;
 
 	query = new Object();
@@ -305,15 +305,12 @@ function HighlightMessageWithRegexp(message) {
 	return msg;
 }
 
-function BuildContext(){
+function BuildContext() {
 	context = new Object();
-	if (IsQueryARegex() == false)
-	{
+	if (IsQueryARegex() == false) {
 		context.BuildQuery = BuildSearchQuery;
 		context.HighlightMessage = HighlightMessageWithSearchedWords;
-	}
-	else if (IsQueryARegex())
-	{
+	} else if (IsQueryARegex()) {
 		context.HighlightMessage = HighlightMessageWithRegexp;
 		context.BuildQuery = BuildRegexQuery;
 	}
@@ -415,3 +412,22 @@ function RefreshLogDetails() {
 	logDetails.append(log);
 	$("#logPanel").show();
 }
+
+// function Test() {
+// 	var crypto = window.crypto || window.msCrypto;
+// 	data = "test";
+// 	if (crypto.subtle) {
+// 		alert("Cryptography API Supported");
+
+// 		var promise = crypto.subtle.digest({
+// 			name: "SHA-256"
+// 		}, convertStringToArrayBufferView(data));
+
+// 		promise.then(function (result) {
+// 			var hash_value = convertArrayBufferToHexaDecimal(result);
+// 		});
+// 	} else {
+// 		alert("Cryptography API not Supported");
+// 	}
+
+// }
