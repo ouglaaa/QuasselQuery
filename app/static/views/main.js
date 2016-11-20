@@ -23,12 +23,14 @@ $(document).ready(function () {
 
 	marks = ["mark0", "mark1", "mark2", "mark3", "mark4"];
 });
-var networks;
-var buffers;
+var networks; // networks linked to the user
+var buffers; // buffers for the selected network 
 
-var searchResults;
-var searchedWords;
+var searchResults; // datatable with query search results
+var searchedWords; // array containing searched words input
 var logContent; // JSon log content 
+
+var context; // query context switcher ( regex vs plain text and so on)
 
 function IsQueryARegex() {
 	var b = $("#isRegex").is(":checked");
@@ -267,6 +269,7 @@ function BuildSearchQuery(bufferIds) {
 
 	return query;
 }
+
 function HighlightMessageWithSearchedWords(message) {
 	var words = searchedWords.ToEnumerable().Select(kvp => kvp.Key).ToArray().join("|");
 
@@ -282,9 +285,9 @@ function HighlightMessageWithSearchedWords(message) {
 function BuildRegexQuery(bufferIds) {
 	regText = $("#searchText").val().trim();
 
-	regex = new RegExp(regText);
-	console.log("text:", regText);
-	console.log( "regex:", regex );
+	context.regex = new RegExp(regText, "gi");
+	if(context.regex == null)
+		throw "invalid regex: " + regText;
 
 	query = new Object();
 	query.filters = [
@@ -294,7 +297,14 @@ function BuildRegexQuery(bufferIds) {
 
 	return query;
 }
-var context;
+
+function HighlightMessageWithRegexp(message) {
+	var msg = message.replace(context.regex, match => {
+		return "<mark class=\"mark0\">" + match + "</mark>";
+	});
+	return msg;
+}
+
 function BuildContext(){
 	context = new Object();
 	if (IsQueryARegex() == false)
@@ -306,11 +316,7 @@ function BuildContext(){
 	{
 		context.HighlightMessage = HighlightMessageWithRegexp;
 		context.BuildQuery = BuildRegexQuery;
-		console.log("RegexQuery");
 	}
-}
-function HighlightMessageWithRegexp(message) {
-	return message;
 }
 
 function DoSearch() {
@@ -320,11 +326,11 @@ function DoSearch() {
 
 	var bufferIds = $("#buffer").val();
 	var query = context.BuildQuery(bufferIds);
-	console.log("query", query);
+	//console.log("query", query);
 
 	var queryJson = JSON.stringify(query);
 
-	console.log("queryJson ", queryJson);
+	//console.log("queryJson ", queryJson);
 	sr = GetDataTable();
 
 	MeasureAjax("backlog query", sr.ajax.url("/api/backlog?q=" + queryJson).load, AttachOnClickToSearchResults)
@@ -394,8 +400,8 @@ function GetLogDisplay(logDetail) {
 	logDetail.forEach(function (msg) {
 		line = GetDateFormat(msg) +
 			/* '[' + GetBufferName(msg.BufferId) + ']' + */
-			htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + msg.Message + "\n";
-		log += "<li>" + context.HighlightMessage(line) + "</li>";
+			htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(msg.Message) + "\n";
+		log += "<li>" + line + "</li>";
 
 	})
 	return log;
