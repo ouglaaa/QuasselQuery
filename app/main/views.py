@@ -1,10 +1,10 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import SelectField, TextField, fields
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 from .model import *
 
-class MainForm(Form):
+class MainForm(FlaskForm):
 
     # network  = QuerySelectField('network', 
     #                             get_label=lambda x: x.NetworkName, 

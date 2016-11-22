@@ -1,6 +1,6 @@
 $(document).ready(function () {
-	LoadNetwork();
 
+	GetHeaders(LoadNetwork);
 	$("#logPanel").hide();
 
 	$("#go").click(function () {
@@ -31,6 +31,7 @@ var searchedWords; // array containing searched words input
 var logContent; // JSon log content 
 
 var context; // query context switcher ( regex vs plain text and so on)
+var author;
 
 function IsQueryARegex() {
 	var b = $("#isRegex").is(":checked");
@@ -45,6 +46,18 @@ function GetNetwork(networkId) {
 		return tab[0];
 }
 
+function MakeJSonCall(url, success) {
+	$.ajax({
+		url: url,
+		type: "json",
+		method: "GET",
+		headers: {
+			"Authorization" : author,
+		},
+		success: data => success(data)
+	});
+
+}
 
 
 function LoadNetwork() {
@@ -56,7 +69,7 @@ function LoadNetwork() {
 	];
 	var json = JSON.stringify(query, space = 0);
 
-	$.getJSON("/api/identity?q=" + json, function (data) {
+	MakeJSonCall("/api/identity?q=" + json, function (data) {
 		select.empty();
 		identities = data.objects;
 		if (identities == null) {
@@ -85,7 +98,7 @@ function LoadNetwork() {
 
 function RefreshBuffers(network) {
 	var select = $('#buffer');
-	$.getJSON("/api/network/" + network.NetworkId, function (data) {
+	MakeJSonCall("/api/network/" + network.NetworkId, data => {
 		select.empty();
 		buffers = data.Buffers;
 		$.each(buffers, function (idx, item) {
@@ -151,6 +164,7 @@ function GetDataTable() {
 			"sort": true,
 			ajax: {
 				dataSrc: "objects",
+				beforeSend: req => req.setRequestHeader("Authorization", author),
 			},
 			columns: [{
 				"name": "date",
@@ -330,10 +344,11 @@ function DoSearch() {
 	//console.log("queryJson ", queryJson);
 	sr = GetDataTable();
 
-	MeasureAjax("backlog query", sr.ajax.url("/api/backlog?q=" + queryJson).load, AttachOnClickToSearchResults)
+	MeasureAjax("backlog query", sr.ajax
+		.url("/api/backlog?q=" + queryJson)
+		.load, AttachOnClickToSearchResults)
 
 }
-
 
 function AttachOnClickToSearchResults() {
 	sr = GetDataTable();
@@ -347,20 +362,17 @@ function AttachOnClickToSearchResults() {
 		var data = sr.row(this).data();
 
 		var target = '/api/backlog?q=' + QueryBacklogDetails(data, "<");
-		$.getJSON(target,
-			function (beforeDetails) {
-				query = QueryBacklogDetails(data, ">=");
-				target = '/api/backlog?q=' + query;
-				$.getJSON(target,
-					function (afterDetails) {
-						var details = beforeDetails.objects;
-						logContent = details.concat(afterDetails.objects).sort(SortByTime);
+		MakeJSonCall(target, beforeDetails => {
 
-						RefreshLogDetails();
-					});
+			query = QueryBacklogDetails(data, ">=");
+			target = '/api/backlog?q=' + query;
+			MakeJSonCall(target, afterDetails => {
+				var details = beforeDetails.objects;
+				logContent = details.concat(afterDetails.objects).sort(SortByTime);
 
-
-			});
+				RefreshLogDetails();
+			})
+		});
 	});
 }
 
@@ -378,7 +390,7 @@ function FetchLog(direction) {
 	}
 
 	var target = '/api/backlog?q=' + QueryBacklogDetails(message, direction);
-	$.getJSON(target, function (data) {
+	MakeJSonCall(target, data => {
 		tab = data.objects;
 
 		if (direction == "<") {
@@ -413,21 +425,16 @@ function RefreshLogDetails() {
 	$("#logPanel").show();
 }
 
-// function Test() {
-// 	var crypto = window.crypto || window.msCrypto;
-// 	data = "test";
-// 	if (crypto.subtle) {
-// 		alert("Cryptography API Supported");
 
-// 		var promise = crypto.subtle.digest({
-// 			name: "SHA-256"
-// 		}, convertStringToArrayBufferView(data));
+function GetHeaders(callBack) {
+	var req = new XMLHttpRequest();
+	req.open('HEAD', document.location);
+	req.onreadystatechange = function () {
+		if (this.readyState == this.DONE) {
+			author = req.getResponseHeader("Authorization");
+			callBack();
+		}
+	};
+	req.send();
 
-// 		promise.then(function (result) {
-// 			var hash_value = convertArrayBufferToHexaDecimal(result);
-// 		});
-// 	} else {
-// 		alert("Cryptography API not Supported");
-// 	}
-
-// }
+}

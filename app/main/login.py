@@ -45,9 +45,6 @@ def initLogin(app):
     __secret_user__ = app.config['SECRET_USER']
     __secret_password__ = app.config['SECRET_PASSWORD']
 
-def auth_func(*args, **kw):
-    #raise ProcessingException(description='Not authenticated!', code=401)
-    pass
 
 
 def check_auth(username, password):
@@ -72,6 +69,11 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+def auth_func(*args, **kw):
+    #raise ProcessingException(description='Not authenticated!', code=401)
+    auth = request.authorization
+    if not auth or not check_auth(auth.username, auth.password):
+        abort(401) 
 
 
 
