@@ -42,6 +42,8 @@ SECRET_KEY = "zs;dkfljngs'ael;rkgfnma;l"
 SECRET_USER = "plagmad"
 SECRET_PASSWORD = "oxmoz"
 
+DEBUG_MODE = False
+
 SSL_SUPPORT = True
 SSL_CERT_PATH = "ssl/cert.crt"
 SSL_KEY_PATH = "ssl/priv.key"
