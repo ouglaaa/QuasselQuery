@@ -42,11 +42,11 @@ SECRET_KEY = "zs;dkfljngs'ael;rkgfnma;l"
 SECRET_USER = "plagmad"
 SECRET_PASSWORD = "oxmoz"
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 SSL_SUPPORT = True
-SSL_CERT_PATH = "ssl/cert.pem"
-SSL_KEY_PATH = "ssl/cert.key"
+SSL_CERT_PATH = "ssl/cert.crt"
+SSL_KEY_PATH = "ssl/priv.key"
 
 LISTEN_PORT = 8888
 LISTEN_ADDR = "0.0.0.0"
