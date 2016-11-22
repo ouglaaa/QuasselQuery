@@ -5,9 +5,10 @@ edit config.py
     --> change SECRET variables
         - something random for secret signing
         - something you wish for login / password
-
-edit run.py 
-    --> set port to whatever you wish
+    --> config SSL
+        - SSL_SUPPORT : True | False
+        - SSL_CERT_PATH / SSL_KEY_PATH: path to your certificats (can be simlink or whatever)(if used)
+    --> change LISTEN_PORT  LISTEN_ADDR addr / port to your taste
 
 service:
 /!\ user must have read permissions on database quassel-storage.sqlite path /!\ 
@@ -35,6 +36,23 @@ chmod +x   /etc/init.d/quasselquery
 
 #########################
 
+SSL:
+sudo apt-get install certbot
+(install ta vie)
+
+
+
+
+
+
+
+
+
+
+##########################
+
 access:
 http://hostname:port/main
+
+
 

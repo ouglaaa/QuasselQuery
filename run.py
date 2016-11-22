@@ -1,10 +1,16 @@
 
 from app import app
 import ssl
-#from pip._vendor.requests.packages.urllib3.util.ssl_ import SSLContext
 
-#context = SSLContext(ssl.PROTOCOL_SSLv23)
-#context.load_cert_chain("cert.crt", "priv.key", 'testest')
+port = app.config["LISTEN_PORT"]
+addr = app.config["LISTEN_ADDR"]
+cert = app.config["SSL_CERT_PATH"]
+key = app.config["SSL_KEY_PATH"]
+ssl = app.config["SSL_SUPPORT"]
 
+if ssl:
+    context = (cert, key)
+else:
+    context = None
 
-app.run(host='0.0.0.0', port=8888, debug=True)#, ssl_context=context)
+app.run(host=addr, port=port, debug=True, ssl_context=context)

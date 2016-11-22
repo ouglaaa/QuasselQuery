@@ -1,46 +1,40 @@
-{% extends "layout.html" %}
-
-
-{% block body %}
-{{form.csrf_token}}
-	<div class="container">
-		<div id="queryForm" name="queryForm" class="text-center">
-			<fieldset class="form-control">
-				<div id="searchBox">
-					<label for="searchText">Search text:</label>
-					<input type="text" id="searchText" required />
-					<input type="checkbox" id="isRegex" />
-					<label for="isRegex">Regex</label>
-				</div>
-			</fieldset>
-			<fieldset class="margin:40px; form-control">
-				<!--<div class="form-group">-->
-				<label for="network">Network:</label>
-				<select id="network" name="network" class="selectpicker" title="select network" required></select>
-				<!--</div>-->
-			</fieldset>
-			<fieldset class="margin:40px; form-control">
-				<!--<div class="form-group">-->
-				<label for="buffer">Channel:</label>
-				<select id="buffer" name="buffer" class="selectpicker" title="select buffer" required multiple></select>
-				<!--</div>-->
-			</fieldset>
-			<fieldset class="form-control">
-				<button id="go" name="go" class="btn btn-default">Go</button>
-			</fieldset>
-			</form>
-			<div id="searchPanel" class="container; margin: 20px 0 20px 0">
-				<table id="searchResults" class="table table-striped table-bordered" cellspacing="0"></table>
+{% extends "layout.html" %} {% block body %} {{form.csrf_token}}
+<div class="container">
+	<div id="queryForm" name="queryForm" class="text-center">
+		<fieldset class="form-control">
+			<div id="searchBox">
+				<label for="searchText">Search text:</label>
+				<input type="text" id="searchText" required />
+				<input type="checkbox" id="isRegex" />
+				<label for="isRegex">Regex</label>
 			</div>
-			<div>
-			</div>
-			<div id="logPanel">
-				<button id="logPrevious">Previous</button> 
-				<ul id="logDetails">
-				</ul>
-				<button id="logNext">Next</button>
-			</div>
+		</fieldset>
+		<fieldset class="margin:40px; form-control">
+			<!--<div class="form-group">-->
+			<label for="network">Network:</label>
+			<select id="network" name="network" class="selectpicker" title="select network" required></select>
+			<!--</div>-->
+		</fieldset>
+		<fieldset class="margin:40px; form-control">
+			<!--<div class="form-group">-->
+			<label for="buffer">Channel:</label>
+			<select id="buffer" name="buffer" class="selectpicker" title="select buffer" required multiple></select>
+			<!--</div>-->
+		</fieldset>
+		<fieldset class="form-control">
+			<button id="go" name="go" class="btn btn-default">Go</button>
+		</fieldset>
+		</form>
+		<div id="searchPanel" class="container; margin: 20px 0 20px 0">
+			<table id="searchResults" class="table table-striped table-bordered" cellspacing="0"></table>
 		</div>
-		
-{% endblock %}
-
+		<div>
+		</div>
+		<div id="logPanel">
+			<button id="logPrevious">Previous</button>
+			<ul id="logDetails">
+			</ul>
+			<button id="logNext">Next</button>
+		</div>
+	</div>
+	{% endblock %}

@@ -41,3 +41,10 @@ SECRET_KEY = "zs;dkfljngs'ael;rkgfnma;l"
 # salt to taste
 SECRET_USER = "plagmad"
 SECRET_PASSWORD = "oxmoz"
+
+SSL_SUPPORT = True
+SSL_CERT_PATH = "ssl/cert.crt"
+SSL_KEY_PATH = "ssl/priv.key"
+
+LISTEN_PORT = 8888
+LISTEN_ADDR = "0.0.0.0"
