@@ -8,7 +8,7 @@ edit config.py
     --> config SSL
         - SSL_SUPPORT : True | False
         - SSL_CERT_PATH / SSL_KEY_PATH: path to your certificats (can be simlink or whatever)(if used)
-    --> change LISTEN_PORT  LISTEN_ADDR addr / port to your taste
+    --> change DEBUG_MODE | LISTEN_PORT | LISTEN_ADDR addr / port to your taste
 
 service:
 /!\ user must have read permissions on database quassel-storage.sqlite path /!\ 
