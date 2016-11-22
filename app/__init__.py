@@ -72,7 +72,15 @@ engine.connect()
 def do_begin(conn):
     conn.connection.create_function('regexp', 2, re_fn)
 
-api = APIManager(app, flask_sqlalchemy_db=db)
+from app.main.login import initLogin, auth_func
+
+
+api = APIManager(app, flask_sqlalchemy_db=db,
+                 preprocessors=dict(GET=[auth_func],
+                                    GET_SINGLE=[auth_func],
+                                    GET_COLLECTIONS=[auth_func],
+                                    GET_MANY=[auth_func],
+                                    POST=[auth_func]))
 
 
 # Sample HTTP error handling
@@ -81,17 +89,13 @@ def not_found(error):
     return render_template('404.html'), 404
 
 from app.main.controllers import mainModule
-# from app.main.services import dataModule
 
 
 app.register_blueprint(mainModule)
-# app.register_blueprint(dataModule)
 
 
 from app.main.services import initServices, addCorsHeaders
 
 initServices(api)
 
-
-from app.main.login import initLogin
 initLogin(app)

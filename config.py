@@ -15,10 +15,12 @@ fullPath = os.path.join(BASE_DIR, relPath)
 print ('opening ' + os.path.abspath( fullPath))
 
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + fullPath + '?check_same_thread=False' #+ '?mode=ro'
-SQLALCHEMY_ECHO=True
+SQLALCHEMY_ECHO=False
 DATABASE_CONNECT_OPTIONS = { 
     #'check_same_thread': False
      }
+
+
 
 # Application threads. A common general assumption is
 # using 2 per available processor cores - to handle
@@ -31,7 +33,11 @@ CSRF_ENABLED     = True
 
 # Use a secure, unique and absolutely secret key for
 # signing the data. 
-CSRF_SESSION_KEY = "secret"
+CSRF_SESSION_KEY = "zs;dkfljngs'ael;rkgfnma;l'"
 
 # Secret key for signing cookies
-SECRET_KEY = "secret"
+SECRET_KEY = "zs;dkfljngs'ael;rkgfnma;l"
+
+# salt to taste
+SECRET_USER = "plagmad"
+SECRET_PASSWORD = "oxmoz"
