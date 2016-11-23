@@ -38,10 +38,6 @@ CSRF_SESSION_KEY = "zs;dkfljngs'ael;rkgfnma;l'"
 # Secret key for signing cookies
 SECRET_KEY = "zs;dkfljngs'ael;rkgfnma;l"
 
-# salt to taste
-SECRET_USER = "plagmad"
-SECRET_PASSWORD = "oxmoz"
-
 DEBUG_MODE = True
 
 SSL_SUPPORT = True

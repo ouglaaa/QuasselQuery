@@ -72,7 +72,7 @@ engine.connect()
 def do_begin(conn):
     conn.connection.create_function('regexp', 2, re_fn)
 
-from app.main.login import initLogin, auth_func
+from app.main.login import auth_func
 
 
 api = APIManager(app, flask_sqlalchemy_db=db,
@@ -98,4 +98,3 @@ from app.main.services import initServices, addCorsHeaders
 
 initServices(api)
 
-initLogin(app)
