@@ -69,11 +69,16 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+
 def auth_func(*args, **kw):
     #raise ProcessingException(description='Not authenticated!', code=401)
     auth = request.authorization
     if not auth or not check_auth(auth.username, auth.password):
         abort(401) 
+
+def get_login():
+    auth = request.headers["Authorization"].split(" ")[1]
+    return auth    
 
 
 

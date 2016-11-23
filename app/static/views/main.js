@@ -1,6 +1,16 @@
+var networks; 			// networks linked to the user
+var buffers; 			// buffers for the selected network 
+
+var searchResults; 		// datatable with query search results
+var searchedWords; 		// array containing searched words input
+var logContent; 		// JSon log content 
+
+var context; 			// query context switcher ( regex vs plain text and so on)
+var author = "Basic " +  apiToken;	// apiToken imported from page
+
 $(document).ready(function () {
 
-	GetHeaders(LoadNetwork);
+	LoadNetwork();
 	$("#logPanel").hide();
 
 	$("#go").click(function () {
@@ -23,15 +33,6 @@ $(document).ready(function () {
 
 	marks = ["mark0", "mark1", "mark2", "mark3", "mark4"];
 });
-var networks; // networks linked to the user
-var buffers; // buffers for the selected network 
-
-var searchResults; // datatable with query search results
-var searchedWords; // array containing searched words input
-var logContent; // JSon log content 
-
-var context; // query context switcher ( regex vs plain text and so on)
-var author;
 
 function IsQueryARegex() {
 	var b = $("#isRegex").is(":checked");
@@ -423,18 +424,4 @@ function RefreshLogDetails() {
 	logDetails.empty();
 	logDetails.append(log);
 	$("#logPanel").show();
-}
-
-
-function GetHeaders(callBack) {
-	var req = new XMLHttpRequest();
-	req.open('HEAD', document.location);
-	req.onreadystatechange = function () {
-		if (this.readyState == this.DONE) {
-			author = req.getResponseHeader("Authorization");
-			callBack();
-		}
-	};
-	req.send();
-
 }
