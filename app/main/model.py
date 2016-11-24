@@ -82,10 +82,11 @@ class CurrentUser:
     UserId = ""
     UserName = ""
     Token = ""
-    def __init__(self, userId, userName):
-        CurrentUser.UserId = userId
-        CurrentUser.UserName = userName
-    
+    def __init__(self, token):
+        CurrentUser.UserId = token.UserId
+        CurrentUser.UserName = token.UserName
+        CurrentUser.Token = token.Token 
+
     def toJSON(self):
         obj = { 
             'UserId': CurrentUser.UserId,

@@ -10,10 +10,50 @@ from functools import wraps
 
 
 import hashlib
-    
+import uuid
+from datetime import datetime, timedelta
+
+
+tokens = dict()
+
+
+def get_token(token):
+    if not token:
+        return False, None
+    if token in tokens.keys():
+        tok = tokens[token]
+        if tok.ExpireDate < datetime.now():
+            return False, None
+        else:
+            return True, tok
+    else:
+        return False, None
+
+
+def add_token(userid, username):
+    if not any(lambda t: t.UserName == username for t in tokens):
+        token = object()
+        token = Token(userid, username, uuid.uuid4().__str__(), datetime.now() + timedelta(days=30))
+    else:
+        token = next(t for t in tokens.values() if t.UserName == username)
+        token.ExpireDate = datetime.now() + timedelta(days=30)
+    CurrentUser(token=token)
+    tokens[token.Token] = token
+    return token
+
+
+def check_token(token):
+    (valid, tok) = get_token(token)
+    if not valid:
+        return False
+    CurrentUser(token=tok)
+    return valid
+
+
 def get_hashed_password_and_salt(user):
     tab = user.Password.split(":")
     return tab[0], tab[1]
+
 
 def hash_password(password, salt, hash_version):
     if hash_version == 1:
@@ -34,7 +74,7 @@ def check_auth(username, password):
     hash_pwd, salt = get_hashed_password_and_salt(user)
     hashed = hash_password(password, salt, user.HashVersion)
     if hashed == hash_pwd:
-        test = CurrentUser(user.UserId, user.UserName)
+        add_token(user.UserId, user.UserName)
         return True
     return False
 
@@ -47,26 +87,28 @@ def authenticate():
         {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 
-
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return authenticate()
+        if not check_token(get_token_header()):
+            auth = request.authorization
+            if not auth or not check_auth(auth.username, auth.password):
+                return authenticate()
         return f(*args, **kwargs)
     return decorated
 
-
+def get_token_header():
+    H, V = next(((h, v) for (h, v) in request.headers if h.lower() == "http-token"), (None, None))
+    return V
 def auth_func(*args, **kw):
-    auth = request.authorization
-    if not auth or not check_auth(auth.username, auth.password):
-        abort(401)
-    
-
-def get_login():
-    auth = request.headers["Authorization"].split(" ")[1]
-    return auth
-
-
-
+    if not check_token(get_token_header()):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            abort(401)
+        
+class Token:
+    def __init__(self, userid, username, token, expireDate):
+        self.UserId = userid
+        self.UserName = username
+        self.Token = token
+        self.ExpireDate = expireDate

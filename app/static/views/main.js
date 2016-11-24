@@ -1,14 +1,14 @@
-var networks; 			// networks linked to the user
-var buffers; 			// buffers for the selected network 
+var networks; // networks linked to the user
+var buffers; // buffers for the selected network 
 
-var searchResults; 		// datatable with query search results
-var searchedWords; 		// array containing searched words input
-var logContent; 		// JSon log content 
+var searchResults; // datatable with query search results
+var searchedWords; // array containing searched words input
+var logContent; // JSon log content 
 
-var context; 			// query context switcher ( regex vs plain text and so on)
+var context; // query context switcher ( regex vs plain text and so on)
 
 
-var author = "Basic " +  user.Token;	// apiToken imported from page
+var author =  user.Token; // apiToken imported from page
 
 $(document).ready(function () {
 
@@ -55,7 +55,7 @@ function MakeJSonCall(url, success) {
 		type: "json",
 		method: "GET",
 		headers: {
-			"Authorization" : author,
+			"HTTP_Token": author,
 		},
 		success: data => success(data)
 	});
@@ -101,13 +101,31 @@ function LoadNetwork() {
 
 function RefreshBuffers(network) {
 	var select = $('#buffer');
-	MakeJSonCall("/api/network/" + network.NetworkId, data => {
+
+	var query = {
+		filters: [
+			NewFilter("BufferType", "!=", "1"),
+			NewFilter("NetworkId", "==", network.NetworkId),
+		],
+		limit: 50,
+		order_by: [{
+			"field": "BufferType",
+			"direction": "asc",
+		}, {
+			"field": "BufferCName",
+			"direction": "asc",
+		}],
+	}
+
+	MakeJSonCall("/api/buffer?q=" + JSON.stringify(query), data => {
 		select.empty();
-		buffers = data.Buffers;
+		buffers = data.objects;
+		var grp = 2;
 		$.each(buffers, function (idx, item) {
-			bufferName = item.BufferName;
-			if (bufferName == null || bufferName.trim().length == 0)
-				return;
+			if (item.BufferType != grp) {
+				select.append("<option disabled>-----------</option>");
+				grp = item.BufferType;
+			}
 			select.append('<option value="' + item.BufferId + ' "> ' + item.BufferName + '</option>');
 		});
 		select.selectpicker('refresh');
@@ -167,7 +185,7 @@ function GetDataTable() {
 			"sort": true,
 			ajax: {
 				dataSrc: "objects",
-				beforeSend: req => req.setRequestHeader("Authorization", author),
+				beforeSend: req => req.setRequestHeader("HTTP_Token", author),
 			},
 			columns: [{
 				"name": "date",
