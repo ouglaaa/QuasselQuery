@@ -5,10 +5,13 @@ var searchResults; // datatable with query search results
 var searchedWords; // array containing searched words input
 var logContent; // JSon log content 
 
-var context; // query context switcher ( regex vs plain text and so on)
+var context = {	 // query context switcher ( regex vs plain text and so on)
+	BuildQuery: null,
+	HighlightMessage: null,	
+}; 
 
 
-var author =  user.Token; // apiToken imported from page
+var author = user.Token; // apiToken imported from page
 
 $(document).ready(function () {
 
@@ -31,6 +34,9 @@ $(document).ready(function () {
 	$("#logNext").click(function () {
 
 		FetchLog(">");
+	});
+	$("#viewLog").click(function () {
+		ViewLog();
 	});
 
 	marks = ["mark0", "mark1", "mark2", "mark3", "mark4"];
@@ -353,6 +359,9 @@ function BuildContext() {
 
 function DoSearch() {
 
+	$("#logPrev").show();
+	$("#logNext").show();
+	$("#logPanel").hide();
 
 	BuildContext();
 
@@ -415,21 +424,28 @@ function FetchLog(direction) {
 		tab = data.objects;
 
 		if (direction == "<") {
-			logContent = tab.sort(SortByTime).concat(logContent);
+			if (tab.length == 0)
+				$("#logPrev").hide();
+			else
+				logContent = tab.sort(SortByTime).concat(logContent);
+			
 		} else {
-			logContent = logContent.concat(tab.sort(SortByTime));
+			if (tab.length == 0)
+				$("#logNext").hide();
+			else
+				logContent = logContent.concat(tab.sort(SortByTime));
 		}
 
 		RefreshLogDetails();
+		
 	})
 
 }
 
-function GetLogDisplay(logDetail) {
+function GetLogDisplay(detail) {
 	var log = "";
-	logDetail.forEach(function (msg) {
+	detail.forEach(function (msg) {
 		line = GetDateFormat(msg) +
-			/* '[' + GetBufferName(msg.BufferId) + ']' + */
 			htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(msg.Message) + "\n";
 		log += "<li>" + line + "</li>";
 
@@ -438,10 +454,43 @@ function GetLogDisplay(logDetail) {
 }
 
 function RefreshLogDetails() {
-
 	var log = GetLogDisplay(logContent);
 	logDetails = $("#logDetails");
 	logDetails.empty();
 	logDetails.append(log);
 	$("#logPanel").show();
+}
+
+function ViewLog() {
+	var bufferIds = $("#buffer").val();
+	$("#logPrev").show();
+	if (bufferIds == null || bufferIds.length == 0)
+		return;
+	var bufferId = bufferIds[0];
+
+	context = {
+		HighlightMessage: msg => msg,	
+	};
+
+	var query = {
+		filters: [
+			NewFilter("BufferId", "==", bufferId)
+		],
+		order_by: [{
+			"field": "MessageId",
+			"direction": "desc",
+
+		}],
+		limit: 150
+	};
+	queryJson = JSON.stringify(query);
+	MakeJSonCall("/api/backlog?q=" + queryJson, data => {
+		logContent = data.objects.sort(SortByTime);
+		
+		RefreshLogDetails();
+		
+		$("#logNext").hide();
+	});
+
+
 }
