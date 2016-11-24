@@ -4,18 +4,12 @@ from flask import (Flask, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 from flask import request, Response
 from app import app
-from app.main.model import User
-from flask_login import (LoginManager, current_user,
-                         login_user, logout_user)
-
+from app.main.model import User, CurrentUser
 
 from functools import wraps
-from flask.ext.restless import ProcessingException
 
 
 import hashlib
-
-
     
 def get_hashed_password_and_salt(user):
     tab = user.Password.split(":")
@@ -40,8 +34,7 @@ def check_auth(username, password):
     hash_pwd, salt = get_hashed_password_and_salt(user)
     hashed = hash_password(password, salt, user.HashVersion)
     if hashed == hash_pwd:
-        global __Current_User__ 
-        __Current_User__ = user
+        test = CurrentUser(user.UserId, user.UserName)
         return True
     return False
 
@@ -66,7 +59,6 @@ def login_required(f):
 
 
 def auth_func(*args, **kw):
-    #raise ProcessingException(description='Not authenticated!', code=401)
     auth = request.authorization
     if not auth or not check_auth(auth.username, auth.password):
         abort(401)

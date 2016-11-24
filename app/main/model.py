@@ -77,3 +77,20 @@ class Backlog(DeclarativeBase):
 
     Sender = relation(Sender, primaryjoin=SenderId == Sender.SenderId, lazy='immediate')
 
+import json
+class CurrentUser:
+    UserId = ""
+    UserName = ""
+    Token = ""
+    def __init__(self, userId, userName):
+        CurrentUser.UserId = userId
+        CurrentUser.UserName = userName
+    
+    def toJSON(self):
+        obj = { 
+            'UserId': CurrentUser.UserId,
+            'UserName': CurrentUser.UserName,
+            'Token': CurrentUser.Token,            
+        }
+        return json.dumps(obj, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)

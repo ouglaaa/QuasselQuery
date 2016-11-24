@@ -1,9 +1,13 @@
 {% extends "layout.html" %} {% block body %} {{form.csrf_token}}
 <script type=text/javascript>
-    var apiToken = "{{ form.token }}";
+	var user = {{form.user|tojson|safe}}
 </script>
 <script src="/static/views/main.js" type="text/javascript"></script>
 <div class="container">
+	<div>
+		<p>Hello {{form.user.UserName}}, what can i do for you today ?</p>
+	</div>
+
 	<div id="queryForm" name="queryForm" class="text-center">
 		<fieldset class="form-control">
 			<div id="searchBox">

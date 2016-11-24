@@ -6,7 +6,9 @@ var searchedWords; 		// array containing searched words input
 var logContent; 		// JSon log content 
 
 var context; 			// query context switcher ( regex vs plain text and so on)
-var author = "Basic " +  apiToken;	// apiToken imported from page
+
+
+var author = "Basic " +  user.Token;	// apiToken imported from page
 
 $(document).ready(function () {
 
@@ -66,7 +68,7 @@ function LoadNetwork() {
 
 	query = new Object();
 	query.filters = [
-		NewFilter("UserId", "==", "1"),
+		NewFilter("UserId", "==", user.UserId),
 	];
 	var json = JSON.stringify(query, space = 0);
 
@@ -231,7 +233,7 @@ function QueryBacklogDetails(message, op) {
 		}],
 	}
 	var json = JSON.stringify(query, space = 0);
-	console.log(json);
+	//console.log(json);
 	return json;
 }
 
@@ -244,7 +246,7 @@ function MeasureAjax(ctx, action, param) {
 
 		var end = new Date().getTime();
 		var elapsed = end - start;
-		console.log(ctx, ": ", elapsed, "ms");
+		//console.log(ctx, ": ", elapsed, "ms");
 	});
 }
 
