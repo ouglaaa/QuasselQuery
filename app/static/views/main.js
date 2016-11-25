@@ -5,10 +5,10 @@ var searchResults; // datatable with query search results
 var searchedWords; // array containing searched words input
 var logContent; // JSon log content 
 
-var context = {	 // query context switcher ( regex vs plain text and so on)
+var context = { // query context switcher ( regex vs plain text and so on)
 	BuildQuery: null,
-	HighlightMessage: null,	
-}; 
+	HighlightMessage: null,
+};
 
 
 var author = user.Token; // apiToken imported from page
@@ -38,7 +38,9 @@ $(document).ready(function () {
 	$("#viewLog").click(function () {
 		ViewLog();
 	});
-
+	$('.close').click(function () {
+		$('.alert').hide();
+	})
 	marks = ["mark0", "mark1", "mark2", "mark3", "mark4"];
 });
 
@@ -292,9 +294,13 @@ function BuildSearchQuery(bufferIds) {
 	BuildSearchedWords();
 
 
-	if (bufferIds == null || searchedWords.Count() == 0) {
-		alert("invalid request");
-		return false;
+	if (searchedWords.Count() == 0) {
+		console.log(">no query");
+		throw "no query";
+	}
+	if (bufferIds == null) {
+		console.log(">no buffer selected and query is not global");
+		throw "no buffer selected and query is not global";
 	}
 
 
@@ -358,7 +364,7 @@ function BuildContext() {
 }
 
 function DoSearch() {
-
+	$("#error").hide();
 	$("#logPrev").show();
 	$("#logNext").show();
 	$("#logPanel").hide();
@@ -366,17 +372,26 @@ function DoSearch() {
 	BuildContext();
 
 	var bufferIds = $("#buffer").val();
-	var query = context.BuildQuery(bufferIds);
-	//console.log("query", query);
+	try {
+		var query = context.BuildQuery(bufferIds);
 
-	var queryJson = JSON.stringify(query);
 
-	//console.log("queryJson ", queryJson);
-	sr = GetDataTable();
 
-	MeasureAjax("backlog query", sr.ajax
-		.url("/api/backlog?q=" + queryJson)
-		.load, AttachOnClickToSearchResults)
+		//console.log("query", query);
+
+		var queryJson = JSON.stringify(query);
+
+		//console.log("queryJson ", queryJson);
+		sr = GetDataTable();
+
+		MeasureAjax("backlog query", sr.ajax
+			.url("/api/backlog?q=" + queryJson)
+			.load, AttachOnClickToSearchResults)
+	} catch (err) {
+		$("#error").show();
+		$("#errorMessage").text(err);
+		console.log(err);
+	}
 
 }
 
@@ -428,7 +443,7 @@ function FetchLog(direction) {
 				$("#logPrev").hide();
 			else
 				logContent = tab.sort(SortByTime).concat(logContent);
-			
+
 		} else {
 			if (tab.length == 0)
 				$("#logNext").hide();
@@ -437,7 +452,7 @@ function FetchLog(direction) {
 		}
 
 		RefreshLogDetails();
-		
+
 	})
 
 }
@@ -462,6 +477,8 @@ function RefreshLogDetails() {
 }
 
 function ViewLog() {
+	$("#searchPanel").hide();
+	$("#error").hide();
 	var bufferIds = $("#buffer").val();
 	$("#logPrev").show();
 	if (bufferIds == null || bufferIds.length == 0)
@@ -469,7 +486,7 @@ function ViewLog() {
 	var bufferId = bufferIds[0];
 
 	context = {
-		HighlightMessage: msg => msg,	
+		HighlightMessage: msg => msg,
 	};
 
 	var query = {
@@ -486,9 +503,9 @@ function ViewLog() {
 	queryJson = JSON.stringify(query);
 	MakeJSonCall("/api/backlog?q=" + queryJson, data => {
 		logContent = data.objects.sort(SortByTime);
-		
+
 		RefreshLogDetails();
-		
+
 		$("#logNext").hide();
 	});
 
