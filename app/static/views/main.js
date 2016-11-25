@@ -289,7 +289,8 @@ function BuildSearchedWords() {
 		idx++;
 		return {
 			Word: word,
-			Mark: "<mark class=\"" + mark + "\">" + word + "</mark>",
+			PreMark: "<mark class=\"" + mark + "\">", 
+			PostMark: "</mark>",
 		};
 	}).ToDictionary(word => word.Word);
 
@@ -299,8 +300,6 @@ function BuildSearchedWords() {
 function BuildSearchQuery(bufferIds) {
 	BuildSearchedWords();
 
-
-	console.log(searchedWords);
 	if (searchedWords.Count() == 0) {
 		throw "no search query";
 	}
@@ -328,7 +327,8 @@ function HighlightMessageWithSearchedWords(message) {
 	var re = new RegExp(words, "gi");
 
 	var msg = message.replace(re, match => {
-		return searchedWords.Get(match).Mark;
+		var test = searchedWords.Get(match.toLowerCase());
+		return  test.PreMark + match + test.PostMark;
 	});
 	return msg;
 }
@@ -404,6 +404,7 @@ function DoSearch() {
 
 function AttachOnClickToSearchResults() {
 	sr = GetDataTable();
+	$("#searchPanel").show();
 	sr.columns.adjust().draw();
 	$(document).on('hover', '#searchResults tr', function () {
 		$(this).css("cursor", "pointer");
