@@ -278,7 +278,13 @@ function MeasureAjax(ctx, action, param) {
 
 function BuildSearchedWords() {
 	var idx = 0;
-	searchedWords = Enumerable.From($("#searchText").val().trim().split(" ")).Select(word => {
+	text =  $("#searchText").val().trim();
+	if (text.length <= 0)
+		throw "No search query";
+	tab = text.split(" ");
+	if (tab.length <= 0)
+		throw "No search query";
+	searchedWords = Enumerable.From(tab).Select(word => {
 		var mark = marks[idx];
 		idx++;
 		return {
@@ -294,13 +300,12 @@ function BuildSearchQuery(bufferIds) {
 	BuildSearchedWords();
 
 
+	console.log(searchedWords);
 	if (searchedWords.Count() == 0) {
-		console.log(">no query");
-		throw "no query";
+		throw "no search query";
 	}
 	if (bufferIds == null) {
-		console.log(">no buffer selected and query is not global");
-		throw "no buffer selected and query is not global";
+		throw "No buffer selected and query is not global";
 	}
 
 
@@ -390,7 +395,6 @@ function DoSearch() {
 	} catch (err) {
 		$("#error").show();
 		$("#errorMessage").text(err);
-		console.log(err);
 	}
 
 }
