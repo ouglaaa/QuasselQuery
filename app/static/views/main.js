@@ -337,9 +337,12 @@ function HighlightMessageWithSearchedWords(message) {
 function BuildRegexQuery(bufferIds) {
 	regText = $("#searchText").val().trim();
 
+	if (regText.length <= 0)
+		throw "Blank regex";
+
 	context.regex = new RegExp(regText, "gi");
 	if (context.regex == null)
-		throw "invalid regex: " + regText;
+		throw "Invalid regex: " + regText;
 
 	query = new Object();
 	query.filters = [
