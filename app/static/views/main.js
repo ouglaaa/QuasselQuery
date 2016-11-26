@@ -8,6 +8,7 @@ var logContent; // JSon log content
 var context = { // query context switcher ( regex vs plain text and so on)
 	BuildQuery: null,
 	HighlightMessage: null,
+	SetupColumns: null,
 };
 
 
@@ -44,6 +45,11 @@ $(document).ready(function () {
 	marks = ["mark0", "mark1", "mark2", "mark3", "mark4"];
 });
 
+function IsGlobalSearch() {
+	var b = $("#isGlobalSearch").is(":checked");
+	return b;
+}
+
 function IsQueryARegex() {
 	var b = $("#isRegex").is(":checked");
 	return b;
@@ -74,35 +80,46 @@ function MakeJSonCall(url, success) {
 function LoadNetwork() {
 	var select = $('#network');
 
-	query = new Object();
-	query.filters = [
-		NewFilter("UserId", "==", user.UserId),
-	];
+	query = {
+		filters: [
+			NewFilter("UserId", "==", user.UserId),
+		]
+	};
+
+
 	var json = JSON.stringify(query, space = 0);
 
-	MakeJSonCall("/api/identity?q=" + json, function (data) {
+	MakeJSonCall("/api/identity?q=" + json, idData => {
 		select.empty();
-		identities = data.objects;
+		identities = idData.objects;
 		if (identities == null) {
 			alert("user 1 not found");
 			return;
 		}
 
+		var idents = Enumerable.From(identities).Select(i => i.IdentityId).ToArray();
+		query = {
+			filters: [
+				NewFilter("IdentityId", "in", idents)
+			]
+		};
+		json = JSON.stringify(query, space=0);
+		MakeJSonCall("/api/network?q=" + json, networkData => {
+			var networksData = networkData.objects;
+			networks = Enumerable.From(networksData).ToDictionary(i => i.NetworkId);
 
-		$.each(identities, function (idx, ident) {
-			networks = ident.Networks;
-			$.each(networks, function (index, item) {
-				select.append('<option value="' + item.NetworkId + ' "> ' + item.NetworkName + '</option>');
-			})
+			networks.ToEnumerable().Select(kvp => kvp.Value).ForEach(item =>
+				select.append('<option value="' + item.NetworkId + ' "> ' + item.NetworkName + '</option>')
+			);
+			select.selectpicker('refresh');
+
+			select.change(function () {
+				var network = networks.Get(+this.value.trim()); // fuck you javascript
+				if (network)
+					RefreshBuffers(network);
+			});
 		});
-		select.selectpicker('refresh');
-	});
 
-	select.change(function () {
-		var network = GetNetwork(this.value);
-
-		if (network)
-			RefreshBuffers(network);
 	});
 }
 
@@ -127,9 +144,11 @@ function RefreshBuffers(network) {
 
 	MakeJSonCall("/api/buffer?q=" + JSON.stringify(query), data => {
 		select.empty();
-		buffers = data.objects;
+		buffers = Enumerable.From(data.objects).ToDictionary(b => b.BufferId);
 		var grp = 2;
-		$.each(buffers, function (idx, item) {
+
+		buffers.ToEnumerable().Select(kvp => kvp.Value).ForEach(item => {
+			console.log(item);
 			if (item.BufferType != grp) {
 				select.append("<option disabled>-----------</option>");
 				grp = item.BufferType;
@@ -207,13 +226,19 @@ function GetDataTable() {
 					return row.Time;
 				},
 			}, {
+				"name": "network",
+				"title": "Network",
+				"width": "150px",
+				"orderable": true,
+				"visible": false,
+				"render": (data, type, row) => networks.Get(+row.Buffer.NetworkId).NetworkName,
+			}, {
 				"name": "buffer",
 				"title": "Buffer",
 				"width": "150px",
 				"orderable": true,
-				"render": function (data, type, row) {
-					return "[" + GetBufferName(row.BufferId) + "]";
-				},
+				"render": (data, type, row) =>
+					"[" + row.Buffer.BufferName + "]",
 			}, {
 				"name": "user",
 				"title": "User",
@@ -231,26 +256,21 @@ function GetDataTable() {
 				}
 			}, ],
 		});
-	}
 
+		$(document).on('hover', '#searchResults tr', function () {
+			$(this).css("cursor", "pointer");
+		});
+	}
 	return searchResults;
 }
 
-function GetBufferName(bufferId) {
-	var tab = buffers.filter(function (val) {
-		if (val.BufferId == bufferId) {
-			return true;
-		}
-	});
-
-	return tab[0].BufferName;
-}
 
 function QueryBacklogDetails(message, op) {
 	var query = {
 		filters: [
 			NewFilter("MessageId", op, message.MessageId),
 			NewFilter("BufferId", '==', message.BufferId),
+			NewFilter("Type", '==', 1), // only plain messages
 		],
 		limit: 50,
 		order_by: [{
@@ -276,9 +296,21 @@ function MeasureAjax(ctx, action, param) {
 	});
 }
 
+function GetAllBuffers() {
+	var merged = [];
+	networks.ToEnumerable()
+			.Select(kvp =>
+				Enumerable.From(kvp.Value.Buffers)
+						  .Select(b => b.BufferId)
+						  .ToArray())
+			.ForEach(t => merged = merged.concat(t));
+	
+	return merged;
+}
+
 function BuildSearchedWords() {
 	var idx = 0;
-	text =  $("#searchText").val().trim();
+	text = $("#searchText").val().trim();
 	if (text.length <= 0)
 		throw "No search query";
 	tab = text.split(" ");
@@ -289,7 +321,7 @@ function BuildSearchedWords() {
 		idx++;
 		return {
 			Word: word,
-			PreMark: "<mark class=\"" + mark + "\">", 
+			PreMark: "<mark class=\"" + mark + "\">",
 			PostMark: "</mark>",
 		};
 	}).ToDictionary(word => word.Word);
@@ -303,20 +335,26 @@ function BuildSearchQuery(bufferIds) {
 	if (searchedWords.Count() == 0) {
 		throw "no search query";
 	}
-	if (bufferIds == null) {
+
+	if ((bufferIds == null || bufferIds.length == 0) && !IsGlobalSearch()) {
 		throw "No buffer selected and query is not global";
 	}
 
 
+	if (IsGlobalSearch()) {
+		bufferIds = GetAllBuffers();
+	}
 
 	query = new Object();
 	query.filters = [
-		NewFilter("BufferId", "in", bufferIds),
+		NewFilter("BufferId", "in", bufferIds)
 	];
 
-	searchedWords.ToEnumerable().ForEach(kvp =>
+
+	searchedWords.ToEnumerable().ForEach(kvp => {
 		query.filters.push(NewFilter("Message", "ilike", encodeURIComponent("%" + kvp.Value.Word + "%")))
-	);
+	});
+
 
 	return query;
 }
@@ -326,9 +364,12 @@ function HighlightMessageWithSearchedWords(message) {
 
 	var re = new RegExp(words, "gi");
 
+	if (message == null) {
+		console.log("message:", message);
+	}
 	var msg = message.replace(re, match => {
 		var test = searchedWords.Get(match.toLowerCase());
-		return  test.PreMark + match + test.PostMark;
+		return test.PreMark + match + test.PostMark;
 	});
 	return msg;
 }
@@ -344,11 +385,24 @@ function BuildRegexQuery(bufferIds) {
 	if (context.regex == null)
 		throw "Invalid regex: " + regText;
 
+	if ((bufferIds == null || bufferIds.length == 0) && !IsGlobalSearch()) {
+		throw "No buffer selected and query is not global";
+	}
+
+	if (IsGlobalSearch()) {
+		bufferIds = GetAllBuffers();
+	}
 	query = new Object();
 	query.filters = [
 		NewFilter("BufferId", "in", bufferIds),
 		NewFilter("Message", "REGEXP", encodeURIComponent(regText)),
 	];
+
+
+
+
+
+	query.filters.push();
 
 	return query;
 }
@@ -365,9 +419,14 @@ function BuildContext() {
 	if (IsQueryARegex() == false) {
 		context.BuildQuery = BuildSearchQuery;
 		context.HighlightMessage = HighlightMessageWithSearchedWords;
+		context.SetupColumns = sr => sr.columns("network:name").visible(false);
 	} else if (IsQueryARegex()) {
 		context.HighlightMessage = HighlightMessageWithRegexp;
 		context.BuildQuery = BuildRegexQuery;
+		context.SetupColumns = sr => sr.columns("network:name").visible(false);
+	}
+	if (IsGlobalSearch()) {
+		context.SetupColumns = sr => sr.columns("network:name").visible(true);
 	}
 }
 
@@ -384,13 +443,13 @@ function DoSearch() {
 		var query = context.BuildQuery(bufferIds);
 
 
-
-		//console.log("query", query);
-
 		var queryJson = JSON.stringify(query);
 
 		//console.log("queryJson ", queryJson);
 		sr = GetDataTable();
+
+		context.SetupColumns(sr);
+		sr.columns.adjust().draw();
 
 		MeasureAjax("backlog query", sr.ajax
 			.url("/api/backlog?q=" + queryJson)
@@ -402,32 +461,38 @@ function DoSearch() {
 
 }
 
+var attached = false;
+
 function AttachOnClickToSearchResults() {
 	sr = GetDataTable();
 	$("#searchPanel").show();
 	sr.columns.adjust().draw();
-	$(document).on('hover', '#searchResults tr', function () {
-		$(this).css("cursor", "pointer");
-	});
 
-
-	$('#searchResults tbody').on('click', 'tr', function () {
-		var data = sr.row(this).data();
-
-		var target = '/api/backlog?q=' + QueryBacklogDetails(data, "<");
-		MakeJSonCall(target, beforeDetails => {
-
-			query = QueryBacklogDetails(data, ">=");
-			target = '/api/backlog?q=' + query;
-			MakeJSonCall(target, afterDetails => {
-				var details = beforeDetails.objects;
-				logContent = details.concat(afterDetails.objects).sort(SortByTime);
-
-				RefreshLogDetails();
-			})
+	if (attached == false) {
+		$('#searchResults tbody').on('click', 'tr', function () {
+			var data = sr.row(this).data();
+			ViewLogDetails(data);
 		});
-	});
+		attached = true;
+	}
+
 }
+
+function ViewLogDetails(data) {
+
+	var target = '/api/backlog?q=' + QueryBacklogDetails(data, "<");
+	MakeJSonCall(target, beforeDetails => {
+
+		query = QueryBacklogDetails(data, ">=");
+		target = '/api/backlog?q=' + query;
+		MakeJSonCall(target, afterDetails => {
+			var details = beforeDetails.objects;
+			logContent = details.concat(afterDetails.objects).sort(SortByTime);
+
+			RefreshLogDetails();
+		})
+	});
+};
 
 function SortByTime(left, right) {
 	return left.Time - right.Time;
@@ -468,8 +533,9 @@ function FetchLog(direction) {
 function GetLogDisplay(detail) {
 	var log = "";
 	detail.forEach(function (msg) {
+		message = msg.Message == null ? "" : msg.Message;
 		line = GetDateFormat(msg) +
-			htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(msg.Message) + "\n";
+			htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(message) + "\n";
 		log += "<li>" + line + "</li>";
 
 	})

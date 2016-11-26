@@ -25,6 +25,9 @@ class Sender(DeclarativeBase):
     SenderId = Column('senderid', Integer, primary_key=True)
     SenderIdent = Column('sender', Unicode)
 
+    
+    
+    
 class Buffer(DeclarativeBase):
     __tablename__ = 'buffer'
     BufferId = Column('bufferid', Integer, primary_key=True)
@@ -35,24 +38,21 @@ class Buffer(DeclarativeBase):
     BufferCName = Column('buffercname', Unicode)
     BufferType = Column('buffertype', Integer)
     Joined = Column('joined', Integer)
-    
-    
+    # Network = relation(Network, primaryjoin=NetworkId == Network.NetworkId, lazy='immediate')
+
 
 class Network(DeclarativeBase):
     __tablename__ = 'network'
     NetworkId = Column('networkid', Integer, primary_key=True)
     NetworkName = Column('networkname', Unicode)
     IdentityId = Column('identityid', Integer, ForeignKey('identity.identityid'))
-    Buffers = relationship(Buffer, primaryjoin=NetworkId == Buffer.NetworkId, lazy='immediate')
-
-    
+    Buffers = relation(Buffer, primaryjoin=NetworkId == Buffer.NetworkId, lazy='immediate')
 
 class Identity(DeclarativeBase):
     __tablename__ = 'identity'
     IdentityId = Column('identityid', Integer, primary_key=True)
     UserId = Column('userid', Integer)
     IdentityName = Column('identityname', Unicode)
-    Networks = relation(Network, primaryjoin=IdentityId == Network.IdentityId, lazy='immediate')
     
 
 
@@ -76,6 +76,9 @@ class Backlog(DeclarativeBase):
     Message = Column('message', Unicode)
 
     Sender = relation(Sender, primaryjoin=SenderId == Sender.SenderId, lazy='immediate')
+    Buffer = relation(Buffer, primaryjoin=BufferId == Buffer.BufferId, lazy='immediate')
+    #Network = relation(Network, primaryjoin=Buffer.NetworkId == Network.NetworkId, lazy='immediate')
+    
 
 import json
 class CurrentUser:
