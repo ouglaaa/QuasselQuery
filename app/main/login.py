@@ -51,6 +51,8 @@ def check_token(token):
 
 
 def get_hashed_password_and_salt(user):
+    if ":" not in user.Password:
+        return user.Password, ""
     tab = user.Password.split(":")
     return tab[0], tab[1]
 
