@@ -103,7 +103,7 @@ function LoadNetwork() {
 				NewFilter("IdentityId", "in", idents)
 			]
 		};
-		json = JSON.stringify(query, space=0);
+		json = JSON.stringify(query, space = 0);
 		MakeJSonCall("/api/network?q=" + json, networkData => {
 			var networksData = networkData.objects;
 			networks = Enumerable.From(networksData).ToDictionary(i => i.NetworkId);
@@ -244,7 +244,9 @@ function GetDataTable() {
 				"width": "150px",
 				"orderable": true,
 				"render": function (data, type, row) {
-					return htmlEncode("<" + GetSender(row) + ">");
+					if (row.Type == "1")
+						return htmlEncode("<" + GetSender(row) + ">");
+					return " * " + GetSender(row) + " ";
 				},
 			}, {
 				"name": "message",
@@ -269,7 +271,7 @@ function QueryBacklogDetails(message, op) {
 		filters: [
 			NewFilter("MessageId", op, message.MessageId),
 			NewFilter("BufferId", '==', message.BufferId),
-			NewFilter("Type", '==', 1), // only plain messages
+			NewFilter("Type", 'in', [1, 4]), // only plain messages
 		],
 		limit: 50,
 		order_by: [{
@@ -298,12 +300,12 @@ function MeasureAjax(ctx, action, param) {
 function GetAllBuffers() {
 	var merged = [];
 	networks.ToEnumerable()
-			.Select(kvp =>
-				Enumerable.From(kvp.Value.Buffers)
-						  .Select(b => b.BufferId)
-						  .ToArray())
-			.ForEach(t => merged = merged.concat(t));
-	
+		.Select(kvp =>
+			Enumerable.From(kvp.Value.Buffers)
+			.Select(b => b.BufferId)
+			.ToArray())
+		.ForEach(t => merged = merged.concat(t));
+
 	return merged;
 }
 
@@ -441,6 +443,7 @@ function DoSearch() {
 	try {
 		var query = context.BuildQuery(bufferIds);
 
+		query.filters.push(NewFilter("Type", "in", [1, 4]));
 
 		var queryJson = JSON.stringify(query);
 
@@ -533,8 +536,16 @@ function GetLogDisplay(detail) {
 	var log = "";
 	detail.forEach(function (msg) {
 		message = msg.Message == null ? "" : msg.Message;
-		line = GetDateFormat(msg) +
-			htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(message) + "\n";
+		console.log("msg", msg);
+		if (msg.Type == "1") {
+			line = GetDateFormat(msg) +
+				htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(message) + "\n";
+
+		} if (msg.Type == "4") {
+			line = GetDateFormat(msg) +
+				" * " + GetSenderName(msg.Sender.SenderIdent) + " " + context.HighlightMessage(message) + "\n";
+
+		}
 		log += "<li>" + line + "</li>";
 
 	})
