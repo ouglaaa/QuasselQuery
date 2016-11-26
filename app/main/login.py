@@ -60,7 +60,8 @@ def hash_password(password, salt, hash_version):
         hash_object = hashlib.sha512(password.encode() + salt.encode())
         hex_dig = hash_object.hexdigest()
     else:
-        pass
+        hash_object = hashlib.sha1(password.encode() + salt.encode())
+        hex_dig = hash_object.hexdigest()
     return hex_dig
 
 
@@ -72,7 +73,11 @@ def check_auth(username, password):
     if not user:
         return False
     hash_pwd, salt = get_hashed_password_and_salt(user)
-    hashed = hash_password(password, salt, user.HashVersion)
+    hashed = hash_password(password, salt, 1)
+    if hashed == hash_pwd:
+        add_token(user.UserId, user.UserName)
+        return True
+    hashed = hash_password(password, salt, 0)
     if hashed == hash_pwd:
         add_token(user.UserId, user.UserName)
         return True

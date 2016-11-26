@@ -62,7 +62,6 @@ class User(DeclarativeBase):
     UserId = Column('userid', Integer, primary_key=True)
     UserName = Column('username', Unicode)
     Password = Column('password', Unicode)
-    HashVersion = Column('hashversion', Integer)
 #     Identities = relationship(Identity, primaryjoin=UserId==Identity.UserId, lazy='immediate')
 
 class Backlog(DeclarativeBase):

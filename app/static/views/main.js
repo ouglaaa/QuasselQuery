@@ -148,7 +148,6 @@ function RefreshBuffers(network) {
 		var grp = 2;
 
 		buffers.ToEnumerable().Select(kvp => kvp.Value).ForEach(item => {
-			console.log(item);
 			if (item.BufferType != grp) {
 				select.append("<option disabled>-----------</option>");
 				grp = item.BufferType;
