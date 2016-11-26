@@ -92,3 +92,12 @@ textarea {
 ul {
   list-style-type: none;
 }
+#searchPanel{
+    /*position: absolute;*/
+    margin: auto;
+    width: 90%; 
+    width: 90vw;
+}
+#searchResults{
+    margin:0;
+}
