@@ -11,6 +11,7 @@ var context = { // query context switcher ( regex vs plain text and so on)
 	SetupColumns: null,
 };
 
+var anchorCount = 1;
 
 var author = user.Token; // apiToken imported from page
 
@@ -503,6 +504,7 @@ function SortByTime(left, right) {
 
 function FetchLog(direction) {
 	var message;
+	anchor = null;
 	if (direction == "<") {
 		message = logContent[0];
 	} else {
@@ -514,6 +516,8 @@ function FetchLog(direction) {
 		tab = data.objects;
 
 		if (direction == "<") {
+			anchor = data.objects[data.objects.length - 1];
+
 			if (tab.length == 0)
 				$("#logPrev").hide();
 			else
@@ -526,7 +530,7 @@ function FetchLog(direction) {
 				logContent = logContent.concat(tab.sort(SortByTime));
 		}
 
-		RefreshLogDetails();
+		RefreshLogDetails(anchor);
 
 	})
 
@@ -547,7 +551,14 @@ function GetLogDisplay(detail, anchor) {
 				" * " + GetSenderName(msg.Sender.SenderIdent) + " " + context.HighlightMessage(htmlEncode(message)) + "\n";
 
 		}
-		log += "<li " + (msg.MessageId == anchor.MessageId ? "id=\"logTarget\"" : "") + ">" + line + "</li>";
+		if (anchor != null && msg.MessageId == anchor.MessageId) {
+			++anchorCount;
+			tgt = "logTarget" + anchorCount;
+			log += "<li " + (anchor != null && msg.MessageId == anchor.MessageId ? "id=\"" + tgt + "\"" : "") + ">" + line + "</li>";
+		} else {
+
+			log += "<li>" + line + "</li>";
+		}
 
 	})
 	return log;
@@ -560,11 +571,11 @@ function RefreshLogDetails(anchor) {
 	logDetails.append(log);
 	$("#logPanel").show();
 
-console.log("window",  $(window).height(), "outer", $(this).outerHeight(true) );
-
-	$("html,body").animate({
-		scrollTop: $('#logDetails li:nth-child(51)').position().top - ( $(window).height() ) / 2
-	}, 'slow');
+	if (anchor != null) {
+		$("html,body").animate({
+			scrollTop: $('#logTarget' + anchorCount).position().top - ($(window).height()) / 2
+		}, 'slow');
+	}
 }
 
 function ViewLog() {
