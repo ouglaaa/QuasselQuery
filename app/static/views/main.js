@@ -253,7 +253,7 @@ function GetDataTable() {
 				"title": "Message",
 				"orderable": true,
 				"render": function (data, type, row) {
-					return context.HighlightMessage(row.Message);
+					return context.HighlightMessage(htmlEncode(row.Message));
 				}
 			}, ],
 		});
@@ -491,7 +491,7 @@ function ViewLogDetails(data) {
 			var details = beforeDetails.objects;
 			logContent = details.concat(afterDetails.objects).sort(SortByTime);
 
-			RefreshLogDetails();
+			RefreshLogDetails(data);
 		})
 	});
 };
@@ -532,32 +532,39 @@ function FetchLog(direction) {
 
 }
 
-function GetLogDisplay(detail) {
+function GetLogDisplay(detail, anchor) {
 	var log = "";
 	detail.forEach(function (msg) {
+
 		message = msg.Message == null ? "" : msg.Message;
-		console.log("msg", msg);
 		if (msg.Type == "1") {
 			line = GetDateFormat(msg) +
-				htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(message) + "\n";
-
-		} if (msg.Type == "4") {
-			line = GetDateFormat(msg) +
-				" * " + GetSenderName(msg.Sender.SenderIdent) + " " + context.HighlightMessage(message) + "\n";
+				htmlEncode(" <" + GetSenderName(msg.Sender.SenderIdent) + "> ") + context.HighlightMessage(htmlEncode(message)) + "\n";
 
 		}
-		log += "<li>" + line + "</li>";
+		if (msg.Type == "4") {
+			line = GetDateFormat(msg) +
+				" * " + GetSenderName(msg.Sender.SenderIdent) + " " + context.HighlightMessage(htmlEncode(message)) + "\n";
+
+		}
+		log += "<li " + (msg.MessageId == anchor.MessageId ? "id=\"logTarget\"" : "") + ">" + line + "</li>";
 
 	})
 	return log;
 }
 
-function RefreshLogDetails() {
-	var log = GetLogDisplay(logContent);
+function RefreshLogDetails(anchor) {
+	var log = GetLogDisplay(logContent, anchor);
 	logDetails = $("#logDetails");
 	logDetails.empty();
 	logDetails.append(log);
 	$("#logPanel").show();
+
+console.log("window",  $(window).height(), "outer", $(this).outerHeight(true) );
+
+	$("html,body").animate({
+		scrollTop: $('#logDetails li:nth-child(51)').position().top - ( $(window).height() ) / 2
+	}, 'slow');
 }
 
 function ViewLog() {
