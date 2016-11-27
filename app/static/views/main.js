@@ -593,12 +593,12 @@ function ViewLog() {
 
 	var query = {
 		filters: [
-			NewFilter("BufferId", "==", bufferId)
+			NewFilter("BufferId", "==", bufferId),
+			NewFilter("Type", "in", [1,4]),
 		],
 		order_by: [{
 			"field": "MessageId",
 			"direction": "desc",
-
 		}],
 		limit: 150
 	};
