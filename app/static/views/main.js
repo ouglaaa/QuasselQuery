@@ -326,7 +326,7 @@ function BuildSearchedWords() {
 			PreMark: "<mark class=\"" + mark + "\">",
 			PostMark: "</mark>",
 		};
-	}).ToDictionary(word => word.Word);
+	}).ToDictionary(word => word.Word.toLowerCase());
 
 
 }
