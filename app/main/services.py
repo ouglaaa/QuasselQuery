@@ -13,8 +13,8 @@ def addCorsHeaders(response):
 
 
 def initServices(api):    
-    api.create_api(Buffer)
-    api.create_api(Network)
+    api.create_api(Buffer, results_per_page=-1)
+    api.create_api(Network, results_per_page=-1)
     api.create_api(Identity)
     api.create_api(Backlog, results_per_page=-1)
 
