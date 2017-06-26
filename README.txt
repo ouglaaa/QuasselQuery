@@ -44,16 +44,7 @@ chmod +x   /etc/init.d/quasselquery
 #########################
 
 SSL:
-sudo apt-get install certbot
-(install ta vie)
-
-
-
-
-
-
-
-
+Demerden sie sich.
 
 
 ##########################
