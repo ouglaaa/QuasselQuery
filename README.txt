@@ -1,3 +1,10 @@
+
+QuasselQuery is a self-hosted search page for the quassel core sqlite database.( http://quassel-irc.org/ )
+
+It relies on a small html/js website plugged and hosted by a python backend (flask / sqlalchemy)
+
+
+
 config:
 python:
 edit config.py 
