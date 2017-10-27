@@ -79,8 +79,15 @@ function MakeJSonCall(url, success) {
 
 
 function LoadNetwork() {
-	var select = $('#network');
+	var select = $('#network').selectmenu();
+	var buffers = $('#buffer').select2({
+    dropdownAutoWidth : true,
+    width: 'auto'
+});
+														// .selectmenu("menuWidget")
+														// .addClass("overflow");
 
+	select.attr("title", "select a network");
 	query = {
 		filters: [
 			NewFilter("UserId", "==", user.UserId),
@@ -92,6 +99,7 @@ function LoadNetwork() {
 
 	MakeJSonCall("/api/identity?q=" + json, idData => {
 		select.empty();
+		select.append('<option disabled selected value=\"-1\">Please select a network</option>');
 		identities = idData.objects;
 		if (identities == null) {
 			alert("user 1 not found");
@@ -105,6 +113,7 @@ function LoadNetwork() {
 			]
 		};
 		json = JSON.stringify(query, space = 0);
+
 		MakeJSonCall("/api/network?q=" + json, networkData => {
 			var networksData = networkData.objects;
 			networks = Enumerable.From(networksData).ToDictionary(i => i.NetworkId);
@@ -112,13 +121,15 @@ function LoadNetwork() {
 			networks.ToEnumerable().Select(kvp => kvp.Value).ForEach(item =>
 				select.append('<option value="' + item.NetworkId + ' "> ' + item.NetworkName + '</option>')
 			);
-			select.selectpicker('refresh');
+			select.selectmenu('refresh');
 
-			select.change(function () {
-				var network = networks.Get(+this.value.trim()); // fuck you javascript
-				if (network)
-					RefreshBuffers(network);
-			});
+
+			select.on("selectmenuchange",
+				function (event, ui) {
+					var network = networks.Get(+this.value.trim()); // fuck you javascript
+					if (network)
+						RefreshBuffers(network);
+				});
 		});
 
 	});
@@ -126,14 +137,18 @@ function LoadNetwork() {
 
 
 function RefreshBuffers(network) {
-	var select = $('#buffer');
+	var select = $('#buffer').select2({
+    dropdownAutoWidth : true,
+    width: 'auto'
+});
+	console.log(select);
 
 	var query = {
 		filters: [
 			NewFilter("BufferType", "!=", "1"),
 			NewFilter("NetworkId", "==", network.NetworkId),
 		],
-		limit: 50,
+		limit: -1,
 		order_by: [{
 			"field": "BufferType",
 			"direction": "asc",
@@ -145,17 +160,43 @@ function RefreshBuffers(network) {
 
 	MakeJSonCall("/api/buffer?q=" + JSON.stringify(query), data => {
 		select.empty();
+		select.append(new Option("Please select a Buffer", "", true, true));
 		buffers = Enumerable.From(data.objects).ToDictionary(b => b.BufferId);
-		var grp = 2;
 
-		buffers.ToEnumerable().Select(kvp => kvp.Value).ForEach(item => {
-			if (item.BufferType != grp) {
-				select.append("<option disabled>-----------</option>");
-				grp = item.BufferType;
-			}
-			select.append('<option value="' + item.BufferId + ' "> ' + item.BufferName + '</option>');
+		data.objects.forEach(item => {
+			var opt = new Option(item.BufferName, item.BufferId, false, false);
+			select.append(opt);
 		});
-		select.selectpicker('refresh');
+
+		// var grpName = {
+		// 	2: "Channels",
+		// 	4: "Users",
+		// }
+
+		// var groups = [];
+		// buffers.ToEnumerable().ForEach(kvp => {
+		// 	var b = kvp.Value;
+		// 	var list = groups[b.BufferType];
+		// 	if (list == null) {
+		// 		list = [];
+		// 	}
+		// 	list.push(b);
+		// 	groups[b.BufferType] = list;
+		// });
+
+		// Object.keys(groups).forEach(key => {
+		// 	var list = groups[key];
+		// 	console.log("grpName: " + grpName[key]);
+		// 	optGrp = "<optgroup label=\"" + grpName[key] + "\">";
+		// 	//	select.append("<optgroup label=\"" + grpName[key] + "\">");
+		// 	list.forEach(item => {
+		// 		optGrp += '<option value="' + item.BufferId + ' "> ' + item.BufferName + '</option>';
+		// 	});
+		// 	select.append(optGrp);
+		// });
+
+
+		select.trigger('change');
 	});
 }
 
@@ -256,7 +297,7 @@ function GetDataTable() {
 				"render": function (data, type, row) {
 					return context.HighlightMessage(htmlEncode(row.Message));
 				}
-			}, ],
+			},],
 		});
 
 		$(document).on('hover', '#searchResults tr', function () {
@@ -303,8 +344,8 @@ function GetAllBuffers() {
 	networks.ToEnumerable()
 		.Select(kvp =>
 			Enumerable.From(kvp.Value.Buffers)
-			.Select(b => b.BufferId)
-			.ToArray())
+				.Select(b => b.BufferId)
+				.ToArray())
 		.ForEach(t => merged = merged.concat(t));
 
 	return merged;
@@ -594,7 +635,7 @@ function ViewLog() {
 	var query = {
 		filters: [
 			NewFilter("BufferId", "==", bufferId),
-			NewFilter("Type", "in", [1,4]),
+			NewFilter("Type", "in", [1, 4]),
 		],
 		order_by: [{
 			"field": "MessageId",

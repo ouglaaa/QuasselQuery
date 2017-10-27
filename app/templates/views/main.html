@@ -26,15 +26,16 @@
 		<fieldset class="margin:40px; form-control">
 			<!--<div class="form-group">-->
 			<label for="network">Network:</label>
-			<select id="network" name="network" class="selectpicker" title="select network" required></select>
+			<select id="network" name="network" title="select network" required></select>
 			<!--</div>-->
 		</fieldset>
 		<fieldset class="margin:40px; form-control">
+			<!--<div id="buffersDiv" class="margin:40px; form-control">-->
 			<!--<div class="form-group">-->
 			<label for="buffer">Channel:</label>
-			<select id="buffer" name="buffer" class="selectpicker" title="select buffer" required multiple></select>
+			<select id="buffer" class="js-example-basic-single" name="buffer"  title="select buffer"  data-filter="true" required multiple="multiple" data-live-search="true"  ></select>
 			<!--</div>-->
-		</fieldset>
+			</div>
 		<fieldset class="form-control">
 			<button id="go" name="go" class="btn btn-default">Search</button>
 			<button id="viewLog" name="viewLog" class="btn btn-default">View log</button>
