@@ -10,36 +10,32 @@
 	</div>
 	<div id="queryForm" name="queryForm" class="text-center">
 		<fieldset class="form-control">
-			<div id="searchBox">
 				<label for="searchText">Search text:</label>
 				<input type="text" id="searchText" required />
-				<div>
-					<input type="checkbox" id="isRegex" />
-					<label for="isRegex">Regex</label>
-				</div>
-				<div>
-					<input type="checkbox" id="isGlobalSearch" />
-					<label for="isGlobalSearch">Global Search</label>
-				</div>
-			</div>
+		</fieldset>
+		<fieldset class="form-control">
+			<input type="checkbox" id="isRegex" />
+			<label for="isRegex">Regex</label>
+		</fieldset>
+		<fieldset class="form-control">
+			<input type="checkbox" id="isGlobalSearch" />
+			<label for="isGlobalSearch">Global Search</label>
+		</fieldset>
 		</fieldset>
 		<fieldset class="margin:40px; form-control">
-			<!--<div class="form-group">-->
 			<label for="network">Network:</label>
 			<select id="network" name="network" title="select network" required></select>
-			<!--</div>-->
 		</fieldset>
-		<fieldset class="margin:40px; form-control">
-			<!--<div id="buffersDiv" class="margin:40px; form-control">-->
-			<!--<div class="form-group">-->
+		<div class="margin:40px; form-control">
+		<!-- fieldset class="margin:40px; form-control" -->
 			<label for="buffer">Channel:</label>
 			<select id="buffer" class="js-example-basic-single" name="buffer"  title="select buffer"  data-filter="true" required multiple="multiple" data-live-search="true"  ></select>
-			<!--</div>-->
-			</div>
-		<fieldset class="form-control">
+		</div>
+	</div>
+		<!-- fieldset class="margin:40px; form-control" -->
 			<button id="go" name="go" class="btn btn-default">Search</button>
 			<button id="viewLog" name="viewLog" class="btn btn-default">View log</button>
-		</fieldset>
+		<!--/fieldset-->
 		<div id="error" class="alert alert-danger fade in" style="display:none;">
 			<a href="#" class="close">&times;</a>
 			<strong>Error!</strong>
@@ -48,9 +44,7 @@
 		</form>
 	</div>
 </div>
-<div id="searchPanel">
-	<table id="searchResults" class="table table-striped table-bordered fullWidth" width="100%" cellspacing="0"></table>
-</div>
+<table id="searchResults" class="table table-striped table-bordered fullWidth" width="100%" cellspacing="0"></table>
 <div class="container">
 	<div id="logPanel">
 		<button id="logPrevious">Previous</button>

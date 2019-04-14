@@ -509,7 +509,7 @@ var attached = false;
 
 function AttachOnClickToSearchResults() {
 	sr = GetDataTable();
-	$("#searchPanel").show();
+	$("#searchResults").show();
 	sr.columns.adjust().draw();
 
 	if (attached == false) {
